@@ -1,0 +1,27 @@
+name: iOS Release compilation
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'MarkMobile/**'
+      - 'MarkMobile.xcodeproj/**'
+      - 'scripts/**'
+      - '.github/workflows/ios-build.yml'
+  pull_request:
+    paths:
+      - 'MarkMobile/**'
+      - 'MarkMobile.xcodeproj/**'
+      - 'scripts/**'
+      - '.github/workflows/ios-build.yml'
+permissions:
+  contents: read
+jobs:
+  compile:
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show Xcode version
+        run: xcodebuild -version
+      - name: Compile Release for simulator (no signing, no upload)
+        run: bash scripts/testflight.sh --verify

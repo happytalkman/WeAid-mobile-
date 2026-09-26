@@ -1,0 +1,37 @@
+// !$*UTF8*$!
+{ archiveVersion = 1; classes = {}; objectVersion = 56; objects = {
+E7E7B1DDE05E1446C2B5F436 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatStore.swift"; sourceTree = "<group>"; };
+33EE4C5CF3A4E12F232BD059 = { isa = PBXBuildFile; fileRef = E7E7B1DDE05E1446C2B5F436; };
+9727B9EED8ACD2EE46E136A0 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView.swift"; sourceTree = "<group>"; };
+E11030640FCC0E9D6783BF78 = { isa = PBXBuildFile; fileRef = 9727B9EED8ACD2EE46E136A0; };
+8A580AA5A3A56BFBB64C7995 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DeviceActions.swift"; sourceTree = "<group>"; };
+96BDF8504EADE60784CAB0A6 = { isa = PBXBuildFile; fileRef = 8A580AA5A3A56BFBB64C7995; };
+3B9BC32C2C905ED298E20683 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GeminiClient.swift"; sourceTree = "<group>"; };
+31A06733FD3B52211F44CF25 = { isa = PBXBuildFile; fileRef = 3B9BC32C2C905ED298E20683; };
+EB867D7036E47FEA8D62878A = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MarkMobileApp.swift"; sourceTree = "<group>"; };
+66FB070A85AA6E50360A4B87 = { isa = PBXBuildFile; fileRef = EB867D7036E47FEA8D62878A; };
+EEDE96C56CBAC202420A47BC = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView.swift"; sourceTree = "<group>"; };
+289C8D3C22097DA2A314830F = { isa = PBXBuildFile; fileRef = EEDE96C56CBAC202420A47BC; };
+FE2683FD76BFC62C0464E4D1 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SpeechInput.swift"; sourceTree = "<group>"; };
+019AA4E3B2A9AE8B5DF26681 = { isa = PBXBuildFile; fileRef = FE2683FD76BFC62C0464E4D1; };
+28AAD1477D5182D66D4B03B3 = { isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Assets.xcassets"; sourceTree = "<group>"; };
+993A6F0DC816349E9715E5C7 = { isa = PBXBuildFile; fileRef = 28AAD1477D5182D66D4B03B3; };
+26B2A637F7DC4079D5AB78A5 = { isa = PBXFileReference; lastKnownFileType = text.xml; path = "PrivacyInfo.xcprivacy"; sourceTree = "<group>"; };
+4D41DD372D8E0FAD9BCA5A62 = { isa = PBXBuildFile; fileRef = 26B2A637F7DC4079D5AB78A5; };
+7B594B6DB375E1BF3F23CDD6 = { isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info.plist"; sourceTree = "<group>"; };
+38A007151ABE87CC01A5B6E9 = { isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MarkMobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
+325F10A6957A34D66CB8C0E4 = { isa = PBXGroup; children = (3A2A88DEEFF3D1D23E496597,FBDC4F23F93125BBEEAE800C,); sourceTree = "<group>"; };
+3A2A88DEEFF3D1D23E496597 = { isa = PBXGroup; children = (E7E7B1DDE05E1446C2B5F436,9727B9EED8ACD2EE46E136A0,8A580AA5A3A56BFBB64C7995,3B9BC32C2C905ED298E20683,EB867D7036E47FEA8D62878A,EEDE96C56CBAC202420A47BC,FE2683FD76BFC62C0464E4D1,28AAD1477D5182D66D4B03B3,26B2A637F7DC4079D5AB78A5,7B594B6DB375E1BF3F23CDD6,); path = MarkMobile; sourceTree = "<group>"; };
+FBDC4F23F93125BBEEAE800C = { isa = PBXGroup; children = (38A007151ABE87CC01A5B6E9,); name = Products; sourceTree = "<group>"; };
+BCE16DD0260827ECF338C787 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (33EE4C5CF3A4E12F232BD059,E11030640FCC0E9D6783BF78,96BDF8504EADE60784CAB0A6,31A06733FD3B52211F44CF25,66FB070A85AA6E50360A4B87,289C8D3C22097DA2A314830F,019AA4E3B2A9AE8B5DF26681,); runOnlyForDeploymentPostprocessing = 0; };
+0189424A5A60FED329FA868E = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (993A6F0DC816349E9715E5C7,4D41DD372D8E0FAD9BCA5A62,); runOnlyForDeploymentPostprocessing = 0; };
+7561BFB015D8F536760CB671 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+0E8A3AD980EC179856012B7E = { isa = PBXNativeTarget; buildConfigurationList = C57128001CE614BF8549D6BB; buildPhases = (BCE16DD0260827ECF338C787,7561BFB015D8F536760CB671,0189424A5A60FED329FA868E,); buildRules = (); dependencies = (); name = MarkMobile; productName = MarkMobile; productReference = 38A007151ABE87CC01A5B6E9; productType = "com.apple.product-type.application"; };
+89E1FD6268CC0F221A2BE178 = { isa = XCBuildConfiguration; buildSettings = { CLANG_ENABLE_MODULES = YES; SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SWIFT_VERSION = 5.0; DEBUG_INFORMATION_FORMAT = "dwarf"; }; name = Debug; };
+7082CC0B6FC1282FCEABD07A = { isa = XCBuildConfiguration; buildSettings = { ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 2; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = MarkMobile/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 17.0; MARKETING_VERSION = 0.2.0; PRODUCT_BUNDLE_IDENTIFIER = com.personal.markmobile; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 1; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; ENABLE_PREVIEWS = YES; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG; }; name = Debug; };
+E6DE6C99132752C914FEF632 = { isa = XCBuildConfiguration; buildSettings = { CLANG_ENABLE_MODULES = YES; SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SWIFT_VERSION = 5.0; DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym"; }; name = Release; };
+639A7CA24D39909E713B47F7 = { isa = XCBuildConfiguration; buildSettings = { ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 2; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = MarkMobile/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 17.0; MARKETING_VERSION = 0.2.0; PRODUCT_BUNDLE_IDENTIFIER = com.personal.markmobile; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 1; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; ENABLE_PREVIEWS = YES; SWIFT_OPTIMIZATION_LEVEL = "-O"; }; name = Release; };
+862894B703A6DEDF96A9DD6C = { isa = XCConfigurationList; buildConfigurations = (89E1FD6268CC0F221A2BE178,E6DE6C99132752C914FEF632,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+C57128001CE614BF8549D6BB = { isa = XCConfigurationList; buildConfigurations = (7082CC0B6FC1282FCEABD07A,639A7CA24D39909E713B47F7,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+98F54143AB4E86B28C3AFEE0 = { isa = PBXProject; attributes = { LastUpgradeCheck = 1600; }; buildConfigurationList = 862894B703A6DEDF96A9DD6C; compatibilityVersion = "Xcode 14.0"; developmentRegion = ko; hasScannedForEncodings = 0; knownRegions = (ko,en,Base,); mainGroup = 325F10A6957A34D66CB8C0E4; productRefGroup = FBDC4F23F93125BBEEAE800C; projectDirPath = ""; projectRoot = ""; targets = (0E8A3AD980EC179856012B7E,); };
+}; rootObject = 98F54143AB4E86B28C3AFEE0; }
