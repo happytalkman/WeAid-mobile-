@@ -45,7 +45,7 @@ struct SettingsView: View {
                         }.disabled(chat.busy)
                     }
                 } header: { Text("Jauvex 연결") } footer: {
-                    Text("컴퓨터에서 Jauvex 웹 버전을 CVC_WEB_LAN=1 npm run web 으로 시작하면 폰용 링크가 출력됩니다. 그 링크를 붙여 넣으면 왼쪽 위 메뉴에서 Jauvex의 폴더와 에이전트(Claude, Codex, ZCode, Claw)를 고를 수 있습니다. 같은 Wi-Fi에서만 연결되며, 토큰이 일반 HTTP로 오가므로 믿을 수 있는 네트워크에서만 사용하세요.")
+                    Text("컴퓨터의 Jauvex 폴더에서 npm run web:lan 으로 웹 버전을 시작하면 폰용 링크가 출력됩니다. 그 링크를 붙여 넣으면 왼쪽 위 메뉴에서 Jauvex의 폴더와 에이전트(Claude, Codex, ZCode, Claw)를 고를 수 있습니다. 같은 Wi-Fi에서만 연결되며, 토큰이 일반 HTTP로 오가므로 믿을 수 있는 네트워크에서만 사용하세요.")
                 }
                 Section {
                     Toggle("답변을 한국어 음성으로 읽기", isOn: $chat.readAloud)
