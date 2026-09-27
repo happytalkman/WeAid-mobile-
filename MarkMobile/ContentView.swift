@@ -16,11 +16,11 @@ struct ContentView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 HStack {
-                    Circle().fill(chat.hasKey && !chat.model.isEmpty ? cyan : .orange).frame(width: 6, height: 6)
-                    Text(chat.busy ? "답변을 준비하고 있습니다" : (chat.hasKey && !chat.model.isEmpty ? "대화 준비됨" : "설정에서 API 연결이 필요합니다"))
+                    Circle().fill(ready ? cyan : .orange).frame(width: 6, height: 6)
+                    Text(chat.busy ? "답변을 준비하고 있습니다" : (ready ? "대화 준비됨" : "설정에서 API 연결이 필요합니다"))
                         .font(.caption).foregroundStyle(.secondary)
                     Spacer()
-                    Text("PERSONAL AI").font(.system(size: 9, weight: .medium, design: .monospaced)).foregroundStyle(cyan)
+                    Text(chat.jauvexAgent.map { "JAUVEX · \(JauvexProviders.label($0.provider).uppercased())" } ?? "PERSONAL AI").font(.system(size: 9, weight: .medium, design: .monospaced)).foregroundStyle(cyan)
                 }.padding(.horizontal, 20).padding(.vertical, 12)
                 ScrollViewReader { proxy in
                     ScrollView {
@@ -28,18 +28,24 @@ struct ContentView: View {
                             if chat.messages.isEmpty { welcome }
                             ForEach(chat.messages) { message in
                                 VStack(alignment: .leading, spacing: 8) {
-                                    Text(message.role == "user" ? "나" : "MARK").font(.caption.bold()).foregroundStyle(message.role == "user" ? .secondary : cyan)
+                                    Text(label(message.role)).font(.caption.bold()).foregroundStyle(message.role == "model" ? cyan : .secondary)
                                     Text(message.text).textSelection(.enabled).font(.body).lineSpacing(5)
                                     if message.photo != nil { Label("사진 첨부", systemImage: "photo").font(.caption).foregroundStyle(.secondary) }
                                 }
                                 .padding(16).frame(maxWidth: .infinity, alignment: .leading)
-                                .background(message.role == "user" ? Color.white.opacity(0.08) : cyan.opacity(0.06), in: RoundedRectangle(cornerRadius: 18))
+                                .background(message.role == "model" ? cyan.opacity(0.06) : Color.white.opacity(message.role == "app" ? 0.04 : 0.08), in: RoundedRectangle(cornerRadius: 18))
                                 .id(message.id)
                             }
-                            if chat.busy { ProgressView("MARK가 생각하고 있습니다…").tint(cyan).font(.caption) }
+                            if !chat.jauvexLive.isEmpty { // the agent's answer as it is written
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text(label("model")).font(.caption.bold()).foregroundStyle(cyan)
+                                    Text(chat.jauvexLive).font(.body).lineSpacing(5)
+                                }.padding(16).frame(maxWidth: .infinity, alignment: .leading).background(cyan.opacity(0.06), in: RoundedRectangle(cornerRadius: 18))
+                            }
+                            if chat.busy && chat.jauvexLive.isEmpty { ProgressView("\(label("model"))가 생각하고 있습니다…").tint(cyan).font(.caption) }
                         }.padding(20)
                     }
-                    .onChange(of: chat.messages.count) { _ in
+                    .onChange(of: chat.messages.count + chat.jauvexLive.count) { _ in
                         if let last = chat.messages.last { withAnimation { proxy.scrollTo(last.id, anchor: .bottom) } }
                     }
                 }
@@ -58,8 +64,9 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Menu {
+                        if chat.jauvexConnected { jauvexMenu }
                         Button("읽어주기 중지", systemImage: "speaker.slash") { chat.stopSpeaking() }
-                        Button("대화 삭제", systemImage: "trash", role: .destructive) { clearConfirmation = true }.disabled(chat.busy)
+                        Button("대화 삭제", systemImage: "trash", role: .destructive) { clearConfirmation = true }.disabled(chat.busy || chat.jauvexAgent != nil)
                     } label: { Image(systemName: "ellipsis.circle") }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -79,7 +86,34 @@ struct ContentView: View {
                 if phase != .active { speech.stop(); chat.stopSpeaking() }
             }
             .task(id: selection) { await loadPhoto() }
+            .task { if chat.jauvexConnected { await chat.loadJauvex() } }
+            .confirmationDialog(chat.jauvexAsk.map { "\($0.tool) 사용을 허용할까요?" } ?? "", isPresented: Binding(get: { chat.jauvexAsk != nil }, set: { _ in }), titleVisibility: .visible, presenting: chat.jauvexAsk) { _ in
+                Button("허용") { chat.answerJauvex(allow: true) }
+                Button("거부", role: .cancel) { chat.answerJauvex(allow: false) }
+            } message: { ask in Text(ask.input) }
         }.tint(cyan)
+    }
+    private var ready: Bool { chat.jauvexAgent != nil || (chat.hasKey && !chat.model.isEmpty) }
+    /// Who a line is from: the user, the app (Jauvex's own lines), or the agent (MARK when no Jauvex agent is chosen).
+    private func label(_ role: String) -> String { role == "user" ? "나" : role == "app" ? "JAUVEX" : chat.jauvexAgent?.title ?? "MARK" }
+    /// The Jauvex agents, by folder: open one, open a new one of any kind, or go back to MARK's own conversation.
+    @ViewBuilder private var jauvexMenu: some View {
+        Section("Jauvex 에이전트") {
+            Button("MARK (Gemini)", systemImage: chat.jauvexAgent == nil ? "checkmark" : "sparkles") { Task { await chat.openJauvex(nil) } }
+            ForEach(chat.jauvexFolders) { folder in
+                Menu(folder.name) {
+                    ForEach(chat.jauvexAgents.filter { $0.projectId == folder.id }) { agent in
+                        Button(agent.title, systemImage: chat.jauvexAgent?.id == agent.id ? "checkmark" : "terminal") { speech.stop(); Task { await chat.openJauvex(agent) } }
+                    }
+                    Menu("새 에이전트") {
+                        ForEach(JauvexProviders.all, id: \.self) { provider in
+                            Button(JauvexProviders.label(provider)) { speech.stop(); Task { await chat.newJauvexAgent(in: folder, provider: provider) } }
+                        }
+                    }
+                }
+            }
+            Button("에이전트 새로고침", systemImage: "arrow.clockwise") { Task { await chat.loadJauvex() } }
+        }
     }
     private var welcome: some View {
         VStack(alignment: .leading, spacing: 24) {
@@ -114,22 +148,24 @@ struct ContentView: View {
             if loadingPhoto { ProgressView("사진 준비 중…").font(.caption) }
             HStack(alignment: .bottom, spacing: 12) {
                 PhotosPicker(selection: $selection, matching: .images) { Image(systemName: "plus.circle").font(.title2) }
-                    .disabled(chat.busy || speech.recording || loadingPhoto).accessibilityLabel("사진 첨부")
-                TextField("MARK에게 물어보세요", text: $chat.draft, axis: .vertical)
-                    .lineLimit(1...5).disabled(chat.busy || speech.recording)
+                    .disabled(chat.busy || speech.recording || loadingPhoto || chat.jauvexAgent != nil).accessibilityLabel("사진 첨부")
+                TextField(chat.jauvexAgent.map { "\($0.title)에게 말하기" } ?? "MARK에게 물어보세요", text: $chat.draft, axis: .vertical)
+                    .lineLimit(1...5).disabled((chat.busy && chat.jauvexAgent == nil) || speech.recording)
                 Button {
                     if speech.recording { speech.stop() }
                     else { chat.stopSpeaking(); Task { await speech.start() } }
                 } label: { Image(systemName: speech.recording ? "stop.circle.fill" : "mic").font(.title2).foregroundStyle(speech.recording ? .red : cyan) }
-                    .disabled(chat.busy || speech.starting).accessibilityLabel(speech.recording ? "녹음 종료" : "음성 입력")
+                    .disabled((chat.busy && chat.jauvexAgent == nil) || speech.starting).accessibilityLabel(speech.recording ? "녹음 종료" : "음성 입력")
                 Button {
-                    if chat.busy { chat.cancel() } else { speech.stop(); chat.send() }
-                } label: { Image(systemName: chat.busy ? "stop.fill" : "arrow.up").font(.headline).frame(width: 36, height: 36).background(cyan, in: Circle()).foregroundStyle(.black) }
+                    if chat.busy && !talksDuringTurn { chat.cancel() } else { speech.stop(); chat.send() }
+                } label: { Image(systemName: chat.busy && !talksDuringTurn ? "stop.fill" : "arrow.up").font(.headline).frame(width: 36, height: 36).background(cyan, in: Circle()).foregroundStyle(.black) }
                     .disabled(!chat.busy && (speech.recording || speech.starting || loadingPhoto || (chat.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && chat.photo == nil)))
-                    .accessibilityLabel(chat.busy ? "요청 중지" : "전송")
+                    .accessibilityLabel(chat.busy && !talksDuringTurn ? "요청 중지" : "전송")
             }
         }.padding(16).background(Color.white.opacity(0.04))
     }
+    /// A Jauvex agent at work takes what is said next (Jauvex steers it in, queues it or stops the turn): the button sends it.
+    private var talksDuringTurn: Bool { chat.jauvexAgent != nil && !chat.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     @MainActor private func loadPhoto() async {
         guard let selection else { return }
         loadingPhoto = true

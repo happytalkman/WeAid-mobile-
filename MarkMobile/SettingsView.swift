@@ -7,6 +7,9 @@ struct SettingsView: View {
     @State private var models: [String] = []
     @State private var loading = false
     @State private var status: String?
+    @State private var jauvexLink = ""
+    @State private var jauvexStatus: String?
+    @State private var jauvexChecking = false
     private var version: String { return (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "unknown" }
     private var build: String { return (Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String) ?? "unknown" }
     var body: some View {
@@ -32,6 +35,19 @@ struct SettingsView: View {
                     }.disabled(chat.busy || loading)
                 }
                 Section {
+                    TextField("http://컴퓨터주소:4343/mobile?token=…", text: $jauvexLink).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
+                    Button(jauvexChecking ? "연결 확인 중…" : "링크 저장 · 연결 확인") { Task { await connectJauvex() } }.disabled(jauvexChecking || jauvexLink.isEmpty)
+                    if chat.jauvexConnected { Text("연결됨: \(JauvexSettings.url) · 폴더 \(chat.jauvexFolders.count)개 · 에이전트 \(chat.jauvexAgents.count)개").font(.caption).textSelection(.enabled) }
+                    if let jauvexStatus { Text(jauvexStatus).font(.caption).foregroundStyle(.secondary) }
+                    if chat.jauvexConnected {
+                        Button("Jauvex 연결 해제", role: .destructive) {
+                            try? JauvexSettings.save(url: "", token: ""); chat.jauvexConnected = false; Task { await chat.openJauvex(nil) }; jauvexStatus = "연결을 해제했습니다."
+                        }.disabled(chat.busy)
+                    }
+                } header: { Text("Jauvex 연결") } footer: {
+                    Text("컴퓨터에서 Jauvex 웹 버전을 CVC_WEB_LAN=1 npm run web 으로 시작하면 폰용 링크가 출력됩니다. 그 링크를 붙여 넣으면 왼쪽 위 메뉴에서 Jauvex의 폴더와 에이전트(Claude, Codex, ZCode, Claw)를 고를 수 있습니다. 같은 Wi-Fi에서만 연결되며, 토큰이 일반 HTTP로 오가므로 믿을 수 있는 네트워크에서만 사용하세요.")
+                }
+                Section {
                     Toggle("답변을 한국어 음성으로 읽기", isOn: $chat.readAloud)
                 } header: { Text("음성") } footer: {
                     Text("마이크를 눌러 녹음하고, 인식된 내용을 확인한 뒤 전송합니다. 항상 듣기 및 Gemini Live 실시간 음성 스트리밍은 이 버전에 포함되지 않습니다.")
@@ -53,6 +69,18 @@ struct SettingsView: View {
             .onChange(of: chat.model) { UserDefaults.standard.set($0, forKey: "model") }
             .onChange(of: chat.readAloud) { UserDefaults.standard.set($0, forKey: "readAloud") }
         }
+    }
+    @MainActor private func connectJauvex() async {
+        guard let parsed = JauvexSettings.parse(link: jauvexLink) else { jauvexStatus = "링크에 주소와 token이 있어야 합니다. 서버가 출력한 링크를 그대로 붙여 넣으세요."; return }
+        jauvexChecking = true
+        defer { jauvexChecking = false }
+        do {
+            guard let client = JauvexClient(url: parsed.url, token: parsed.token) else { throw AppFailure(message: "주소를 읽을 수 없습니다.") }
+            let (folders, agents) = try await client.agents()
+            try JauvexSettings.save(url: parsed.url, token: parsed.token)
+            chat.jauvexConnected = true; await chat.loadJauvex(); jauvexLink = ""
+            jauvexStatus = "연결 확인 완료: 폴더 \(folders.count)개, 에이전트 \(agents.count)개."
+        } catch { jauvexStatus = error.localizedDescription }
     }
     @MainActor private func connect() async {
         let cleaned = key.trimmingCharacters(in: .whitespacesAndNewlines)
