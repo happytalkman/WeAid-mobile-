@@ -26,23 +26,9 @@ struct ContentView: View {
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 18) {
                             if chat.messages.isEmpty { welcome }
-                            ForEach(chat.messages) { message in
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text(label(message.role)).font(.caption.bold()).foregroundStyle(message.role == "model" ? cyan : .secondary)
-                                    Text(message.text).textSelection(.enabled).font(.body).lineSpacing(5)
-                                    if message.photo != nil { Label("사진 첨부", systemImage: "photo").font(.caption).foregroundStyle(.secondary) }
-                                }
-                                .padding(16).frame(maxWidth: .infinity, alignment: .leading)
-                                .background(message.role == "model" ? cyan.opacity(0.06) : Color.white.opacity(message.role == "app" ? 0.04 : 0.08), in: RoundedRectangle(cornerRadius: 18))
-                                .id(message.id)
-                            }
-                            if !chat.jauvexLive.isEmpty { // the agent's answer as it is written
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text(label("model")).font(.caption.bold()).foregroundStyle(cyan)
-                                    Text(chat.jauvexLive).font(.body).lineSpacing(5)
-                                }.padding(16).frame(maxWidth: .infinity, alignment: .leading).background(cyan.opacity(0.06), in: RoundedRectangle(cornerRadius: 18))
-                            }
-                            if chat.busy && chat.jauvexLive.isEmpty { ProgressView("\(label("model"))가 생각하고 있습니다…").tint(cyan).font(.caption) }
+                            ForEach(chat.messages) { message in bubble(message).id(message.id) }
+                            if !chat.jauvexLive.isEmpty { bubble(ChatMessage(role: "model", text: chat.jauvexLive)) } // the agent's answer as it is written
+                            if chat.busy && chat.jauvexLive.isEmpty { ProgressView(thinking).tint(cyan).font(.caption) }
                         }.padding(20)
                     }
                     .onChange(of: chat.messages.count + chat.jauvexLive.count) { _ in
@@ -93,6 +79,20 @@ struct ContentView: View {
             } message: { ask in Text(ask.input) }
         }.tint(cyan)
     }
+    /// One line of the conversation: who it is from, and what they said. (Its own function: inline, the whole list was too much
+    /// for the type checker.)
+    private func bubble(_ message: ChatMessage) -> some View {
+        let fromAgent = message.role == "model"
+        let tint: Color = fromAgent ? cyan.opacity(0.06) : Color.white.opacity(message.role == "app" ? 0.04 : 0.08)
+        return VStack(alignment: .leading, spacing: 8) {
+            Text(label(message.role)).font(.caption.bold()).foregroundStyle(fromAgent ? cyan : Color.secondary)
+            Text(message.text).textSelection(.enabled).font(.body).lineSpacing(5)
+            if message.photo != nil { Label("사진 첨부", systemImage: "photo").font(.caption).foregroundStyle(.secondary) }
+        }
+        .padding(16).frame(maxWidth: .infinity, alignment: .leading)
+        .background(tint, in: RoundedRectangle(cornerRadius: 18))
+    }
+    private var thinking: String { "\(label("model"))가 생각하고 있습니다…" }
     private var ready: Bool { chat.jauvexAgent != nil || (chat.hasKey && !chat.model.isEmpty) }
     /// Who a line is from: the user, the app (Jauvex's own lines), or the agent (MARK when no Jauvex agent is chosen).
     private func label(_ role: String) -> String { role == "user" ? "나" : role == "app" ? "JAUVEX" : chat.jauvexAgent?.title ?? "MARK" }
